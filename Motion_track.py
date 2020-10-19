@@ -10,6 +10,8 @@ ct = CentroidTracker()
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
 
+oldObjs = None
+first = True
 while cap.isOpened():
     diff = cv2.absdiff(frame1, frame2)
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
@@ -21,22 +23,31 @@ while cap.isOpened():
     for contour in contours:
         (x,y,w,h) = cv2.boundingRect(contour)
         
-        # 700 - min threshold for bees
-        if cv2.contourArea(contour) < 700:
+        if cv2.contourArea(contour)< 700:
             continue
+
         rects.append(cv2.boundingRect(contour))
-        cv2.rectangle(frame1, (x, y), (x + w, y + h), (0,255,0), 2)
-    #cv2.drawContours(frame1, contours, -1, (0,255,0),2)
-    
+        box = cv2.rectangle(frame1, (x,y),(x+ w,y+h),(0,255,0),2)
+        
+        
     objects = ct.update(rects)
+
     # loop over the tracked objects
     for (objectID, centroid) in objects.items():
         # draw both the ID of the object and the centroid of the
         # object on the output frame
         text = "ID {}".format(objectID)
         cv2.putText(frame1, text, (centroid[0] + 700, centroid[1] + 150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        cv2.circle(frame1, (centroid[0] + 700, centroid[1] + 150), 4, (0, 255, 0), -1)
-    
+        #cv2.circle(frame1, (centroid[0] + 700, centroid[1] + 150), 4, (0, 255, 0), -1)
+        if (oldObjs != None):
+            for (oldobjectID, oldcentroid) in oldObjs.items():
+                if (oldobjectID == objectID):
+                    line = cv2.line(frame1, (oldcentroid[0] + 700, oldcentroid[1] + 150), (centroid[0] + 700, centroid[1] + 150), (0, 0, 255), 10)
+
+    if (first):
+        oldObjs = objects
+        first = False
+        
     cv2.imshow("feed", frame1)
     frame1 = frame2
     ret, frame2 = cap.read()
@@ -47,6 +58,3 @@ while cap.isOpened():
 
 cv2.destroyAllWindows()
 cap.release()
-
-
-
