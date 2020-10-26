@@ -11,6 +11,7 @@ class CentroidTracker():
         # ID to its centroid and number of consecutive frames it has been marked as "disappeared", respectively
         self.nextObjectID = 0
         self.objects = OrderedDict()
+        self.parents = OrderedDict()
         self.disappeared = OrderedDict()
         # store the number of maximum consecutive frames a given object is allowed to be marked as "disappeared" until we
         #need to deregister the object from tracking
@@ -20,6 +21,7 @@ class CentroidTracker():
         # when registering an object we use the next available object
         # ID to store the centroid
         self.objects[self.nextObjectID] = centroid
+        self.parents[self.nextObjectID] = centroid
         self.disappeared[self.nextObjectID] = 0
         self.nextObjectID += 1
 
@@ -27,6 +29,7 @@ class CentroidTracker():
         # to deregister an object ID we delete the object ID from
         # both of our respective dictionaries
         del self.objects[objectID]
+        del self.parents[objectID]
         del self.disappeared[objectID]
 
 
@@ -45,7 +48,7 @@ class CentroidTracker():
                     self.deregister(objectID)
             # return early as there are no centroids or tracking info
             # to update
-            return self.objects
+            return self.objects, self.parents
         # initialize an array of input centroids for the current frame
         inputCentroids = np.zeros((len(rects), 2), dtype="int")
         # loop over the bounding box rectangles
@@ -98,6 +101,7 @@ class CentroidTracker():
                 # set its new centroid, and reset the disappeared
                 # counter
                 objectID = objectIDs[row]
+                self.parents[objectID] = self.objects[objectID]
                 self.objects[objectID] = inputCentroids[col]
                 self.disappeared[objectID] = 0
                 # indicate that we have examined each of the row and
@@ -131,4 +135,4 @@ class CentroidTracker():
                 for col in unusedCols:
                     self.register(inputCentroids[col])
         # return the set of trackable objects
-        return self.objects
+        return self.objects, self.parents

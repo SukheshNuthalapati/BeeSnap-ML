@@ -3,14 +3,16 @@
 
 import cv2
 from centroid_tracker import CentroidTracker
+import numpy as np
 
 cap = cv2.VideoCapture('high1.avi')
 ct = CentroidTracker()
 
 ret, frame1 = cap.read()
 ret, frame2 = cap.read()
+oldPoints = []
+newPoints = []
 
-oldObjs = None
 first = True
 while cap.isOpened():
     diff = cv2.absdiff(frame1, frame2)
@@ -20,6 +22,7 @@ while cap.isOpened():
     dilated = cv2.dilate(thresh, None, iterations=3)
     contours, _ = cv2.findContours(dilated, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     rects = []
+
     for contour in contours:
         (x,y,w,h) = cv2.boundingRect(contour)
         
@@ -29,8 +32,11 @@ while cap.isOpened():
         rects.append(cv2.boundingRect(contour))
         box = cv2.rectangle(frame1, (x,y),(x+ w,y+h),(0,255,0),2)
         
-        
-    objects = ct.update(rects)
+    for i in range(len(oldPoints)):
+            oldcentroid = oldPoints[i]
+            newcentroid = newPoints[i]
+            cv2.line(frame1, (oldcentroid[0] + 700, oldcentroid[1] + 150), (newcentroid[0] + 700, newcentroid[1] + 150), (0, 0, 255), 3)
+    objects, parents = ct.update(rects)
 
     # loop over the tracked objects
     for (objectID, centroid) in objects.items():
@@ -38,15 +44,11 @@ while cap.isOpened():
         # object on the output frame
         text = "ID {}".format(objectID)
         cv2.putText(frame1, text, (centroid[0] + 700, centroid[1] + 150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
-        #cv2.circle(frame1, (centroid[0] + 700, centroid[1] + 150), 4, (0, 255, 0), -1)
-        if (oldObjs != None):
-            for (oldobjectID, oldcentroid) in oldObjs.items():
-                if (oldobjectID == objectID):
-                    line = cv2.line(frame1, (oldcentroid[0] + 700, oldcentroid[1] + 150), (centroid[0] + 700, centroid[1] + 150), (0, 0, 255), 10)
-
-    if (first):
-        oldObjs = objects
-        first = False
+        oldCentroid = parents[objectID]
+        oldPoints.append(oldCentroid)
+        newPoints.append(centroid)
+        cv2.line(frame1, (oldCentroid[0] + 700, oldCentroid[1] + 150), (centroid[0] + 700, centroid[1] + 150), (0, 0, 255), 2)
+        cv2.circle(frame1, (centroid[0] + 700, centroid[1] + 150), 4, (0, 255, 0), -1)
         
     cv2.imshow("feed", frame1)
     frame1 = frame2
