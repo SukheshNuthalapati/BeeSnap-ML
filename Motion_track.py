@@ -5,6 +5,8 @@ import cv2
 from centroid_tracker import CentroidTracker
 import numpy as np
 import random
+from math import hypot
+import matplotlib.pyplot as plt
 
 cap = cv2.VideoCapture('high1.avi')
 ct = CentroidTracker()
@@ -15,6 +17,15 @@ oldPoints = []
 newPoints = []
 colorsDict = {}
 colors = []
+pointsDict = {}
+
+
+def updatePoints(objectID, centroid, oldCentroid):
+    if objectID in pointsDict:
+        dist = hypot(oldCentroid[1] - centroid[1], oldCentroid[0] - centroid[0])
+        pointsDict[objectID].append(dist)
+    else:
+        pointsDict[objectID] = [0]
 
 def getColor(objectID):
     if objectID in colorsDict:
@@ -62,16 +73,21 @@ while cap.isOpened():
         colors.append(getColor(objectID))
         oldPoints.append(oldCentroid)
         newPoints.append(centroid)
+        updatePoints(objectID, centroid, oldCentroid)
 #         cv2.line(frame1, (oldCentroid[0] + 700, oldCentroid[1] + 150), (centroid[0] + 700, centroid[1] + 150), (0, 0, 255), 2)
         cv2.circle(frame1, (centroid[0] + 700, centroid[1] + 150), 4, getColor(objectID), -1)
-        
+
     cv2.imshow("feed", frame1)
     frame1 = frame2
     ret, frame2 = cap.read()
     
-    
-    if cv2.waitKey(40) == 27:
+    if cv2.waitKey(1) == ord('q'):
         break
+for id in pointsDict:
+    temp = np.array(pointsDict[id])
+    temp = np.cumsum(temp)
+    plt.plot(temp)
+plt.show()
 
 cv2.destroyAllWindows()
 cap.release()
