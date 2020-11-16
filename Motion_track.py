@@ -83,10 +83,18 @@ while cap.isOpened():
     
     if cv2.waitKey(1) == ord('q'):
         break
+points = {}
 for id in pointsDict:
     temp = np.array(pointsDict[id])
-    temp = np.cumsum(temp)
-    plt.plot(temp)
+    #temp = np.cumsum(temp)
+    #plt.plot(temp)
+    points[id] = np.cumsum(temp)
+last_points = []
+for id in pointsDict:
+    last_points.append(points.get(id)[-1])
+    plt.scatter(id, points.get(id)[-1])
+avg = np.mean(last_points)
+plt.title("Total Distance For Each Bee" + " | Mean Distance:" + str(avg))
 plt.show()
 
 cv2.destroyAllWindows()
