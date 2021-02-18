@@ -38,8 +38,10 @@ def getColor(objectID):
         colorsDict[objectID] = rgb
         return colorsDict[objectID]
 
-
 while cap.isOpened():
+    if frame1 is None or frame2 is None: 
+        break
+
     diff = cv2.absdiff(frame1, frame2)
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
