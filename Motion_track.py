@@ -8,6 +8,7 @@ import random
 from math import hypot
 import matplotlib.pyplot as plt
 
+
 cap = cv2.VideoCapture('high1.avi')
 ct = CentroidTracker()
 
@@ -85,12 +86,28 @@ while cap.isOpened():
     
     if cv2.waitKey(1) == ord('q'):
         break
+import csv
+# idList = []
+# for ids in pointsDict:
+#     idList.append(ids)
+# with open('distances.csv', 'w', newline='') as csvfile:
+#     spamwriter = csv.writer(csvfile, delimiter=',')
+#     spamwriter.writerow(idList)
+
+for ids in pointsDict:
+    temp = np.array(pointsDict[ids])
+    temp = [ids] + temp
+    with open('distances.csv', 'a+', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',')
+        spamwriter.writerow(temp)
+
 points = {}
 for id in pointsDict:
     temp = np.array(pointsDict[id])
     #temp = np.cumsum(temp)
     #plt.plot(temp)
     points[id] = np.cumsum(temp)
+   
 last_points = []
 for id in pointsDict:
     last_points.append(points.get(id)[-1])
