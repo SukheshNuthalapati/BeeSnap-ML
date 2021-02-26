@@ -8,6 +8,7 @@ import random
 from math import hypot
 import matplotlib.pyplot as plt
 
+
 cap = cv2.VideoCapture('high1.avi')
 ct = CentroidTracker()
 
@@ -38,8 +39,10 @@ def getColor(objectID):
         colorsDict[objectID] = rgb
         return colorsDict[objectID]
 
-
 while cap.isOpened():
+    if frame1 is None or frame2 is None: 
+        break
+
     diff = cv2.absdiff(frame1, frame2)
     gray = cv2.cvtColor(diff, cv2.COLOR_BGR2GRAY)
     blur = cv2.GaussianBlur(gray, (5,5), 0)
@@ -83,10 +86,34 @@ while cap.isOpened():
     
     if cv2.waitKey(1) == ord('q'):
         break
+import csv
+# idList = []
+# for ids in pointsDict:
+#     idList.append(ids)
+# with open('distances.csv', 'w', newline='') as csvfile:
+#     spamwriter = csv.writer(csvfile, delimiter=',')
+#     spamwriter.writerow(idList)
+
+for ids in pointsDict:
+    temp = np.array(pointsDict[ids])
+    temp = [ids] + temp
+    with open('distances.csv', 'a+', newline='') as csvfile:
+        spamwriter = csv.writer(csvfile, delimiter=',')
+        spamwriter.writerow(temp)
+
+points = {}
 for id in pointsDict:
     temp = np.array(pointsDict[id])
-    temp = np.cumsum(temp)
-    plt.plot(temp)
+    #temp = np.cumsum(temp)
+    #plt.plot(temp)
+    points[id] = np.cumsum(temp)
+   
+last_points = []
+for id in pointsDict:
+    last_points.append(points.get(id)[-1])
+    plt.scatter(id, points.get(id)[-1])
+avg = np.mean(last_points)
+plt.title("Total Distance For Each Bee" + " | Mean Distance:" + str(avg))
 plt.show()
 
 cv2.destroyAllWindows()
