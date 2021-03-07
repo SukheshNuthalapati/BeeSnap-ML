@@ -9,7 +9,7 @@ from math import hypot
 import matplotlib.pyplot as plt
 
 
-cap = cv2.VideoCapture('high1.avi')
+cap = cv2.VideoCapture('beestream.avi')
 ct = CentroidTracker()
 
 ret, frame1 = cap.read()
@@ -63,22 +63,24 @@ while cap.isOpened():
     for i in range(len(oldPoints)):
         oldcentroid = oldPoints[i]
         newcentroid = newPoints[i]
-        cv2.line(frame1, (oldcentroid[0] + 700, oldcentroid[1] + 150), (newcentroid[0] + 700, newcentroid[1] + 150), colors[i], 2)
+        cv2.line(frame1, (oldcentroid[0] + 450, oldcentroid[1] + 150), (newcentroid[0] + 450, newcentroid[1] + 150), colors[i], 2)
     objects, parents = ct.update(rects)
 
     # loop over the tracked objects
     for (objectID, centroid) in objects.items():
         # draw both the ID of the object and the centroid of the
         # object on the output frame
+        
         text = "ID {}".format(objectID)
-        cv2.putText(frame1, text, (centroid[0] + 700, centroid[1] + 150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, getColor(objectID), 2)
+        cv2.putText(frame1, text, (centroid[0] + 450, centroid[1] + 150), cv2.FONT_HERSHEY_SIMPLEX, 0.5, getColor(objectID), 2)
         oldCentroid = parents[objectID]
         colors.append(getColor(objectID))
         oldPoints.append(oldCentroid)
         newPoints.append(centroid)
         updatePoints(objectID, centroid, oldCentroid)
+        parents[objectID] = centroid
 #         cv2.line(frame1, (oldCentroid[0] + 700, oldCentroid[1] + 150), (centroid[0] + 700, centroid[1] + 150), (0, 0, 255), 2)
-        cv2.circle(frame1, (centroid[0] + 700, centroid[1] + 150), 4, getColor(objectID), -1)
+        cv2.circle(frame1, (centroid[0] + 450, centroid[1] + 150), 4, getColor(objectID), -1)
 
     cv2.imshow("feed", frame1)
     frame1 = frame2
@@ -95,8 +97,10 @@ import csv
 #     spamwriter.writerow(idList)
 
 for ids in pointsDict:
+    temp = None
     temp = np.array(pointsDict[ids])
-    temp = [ids] + temp
+    temp =np.append(ids, temp)
+    
     with open('distances.csv', 'a+', newline='') as csvfile:
         spamwriter = csv.writer(csvfile, delimiter=',')
         spamwriter.writerow(temp)
